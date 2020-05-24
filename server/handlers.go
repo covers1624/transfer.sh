@@ -254,7 +254,8 @@ func (s *Server) postHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error occurred copying to output stream", 500)
 		return
 	}
-	if r.RemoteAddr == "185.57.191.150" {
+	//Expand this to allow anything from AS201971
+	if r.RemoteAddr != "185.57.191.150" {
 		http.Error(w, "Uploads from NOC IPv4 only.", 403)
 		return
 	}
@@ -414,6 +415,12 @@ func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
 	reader = r.Body
 
 	defer r.Body.Close()
+	
+	//Expand this to allow anything from AS201971
+	if r.RemoteAddr != "185.57.191.150" {
+		http.Error(w, "Uploads from NOC IPv4 only.", 403)
+		return
+	}
 
 	if contentLength == -1 {
 		// queue file to disk, because s3 needs content length
