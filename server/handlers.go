@@ -254,7 +254,10 @@ func (s *Server) postHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error occurred copying to output stream", 500)
 		return
 	}
-
+	if r.RemoteAddr == "185.57.191.150" {
+		http.Error(w, "Uploads from NOC IPv4 only.", 403)
+		return
+	}
 	token := Encode(10000000 + int64(rand.Intn(1000000000)))
 
 	w.Header().Set("Content-Type", "text/plain")
