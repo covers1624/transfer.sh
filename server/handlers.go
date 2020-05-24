@@ -255,9 +255,23 @@ func (s *Server) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Expand this to allow anything from AS201971
-	if (!strings.Contains(r.RemoteAddr, "185.57.191.150")) {
-		log.Printf("Upload attempted from '%s'", r.RemoteAddr)
-		http.Error(w, "Uploads from NOC IPv4 only.", 403)
+	remoteippart := strings.Split(r.RemoteAddr, ":") 
+	asn := getASN(remoteippart[0])
+	asns := strings.Split(s.AsnWhitelistString, ",");
+	asnTest := false
+	for _, element := range asns {
+		thisAsn, err := strconv.ParseUint(element,10, 64);
+		if err != nil {
+			log.Printf("%s", err.Error())
+		} else {
+			if thisAsn == asn {
+				asnTest = true;
+			}
+		}
+	}
+	if ((!strings.Contains(r.RemoteAddr, "185.57.191.150")) && asnTest != true) {
+		log.Printf("Upload attempted from '%s' (%s)", r.RemoteAddr, asn)
+		http.Error(w, "Unauthorized IP", 403)
 		return
 	}
 	token := Encode(10000000 + int64(rand.Intn(1000000000)))
@@ -418,9 +432,23 @@ func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	
 	//Expand this to allow anything from AS201971
-	if (!strings.Contains(r.RemoteAddr, "185.57.191.150")) {
-		log.Printf("Upload attempted from '%s'", r.RemoteAddr)
-		http.Error(w, "Uploads from NOC IPv4 only.", 403)
+	remoteippart := strings.Split(r.RemoteAddr, ":") 
+	asn := getASN(remoteippart[0])
+	asns := strings.Split(s.AsnWhitelistString, ",");
+	asnTest := false
+	for _, element := range asns {
+		thisAsn, err := strconv.ParseUint(element,10, 64);
+		if err != nil {
+			log.Printf("%s", err.Error())
+		} else {
+			if thisAsn == asn {
+				asnTest = true;
+			}
+		}
+	}
+	if ((!strings.Contains(r.RemoteAddr, "185.57.191.150")) && asnTest != true) {
+		log.Printf("Upload attempted from '%s' (%s)", r.RemoteAddr, asn)
+		http.Error(w, "Unauthorized IP", 403)
 		return
 	}
 

@@ -116,6 +116,12 @@ var globalFlags = []cli.Flag{
 		EnvVar: "PROVIDER",
 	},
 	cli.StringFlag{
+		Name: "asn-whitelist",
+		Usage: "201971,6969,30",
+		Value: "",
+		EnvVar: "ASN_WHITELIST",
+	},
+	cli.StringFlag{
 		Name:   "s3-endpoint",
 		Usage:  "",
 		Value:  "",
@@ -307,6 +313,10 @@ func New() *Cmd {
 
 		if v := c.String("proxy-port"); v != "" {
 			options = append(options, server.ProxyPort(v))
+		}
+
+		if v := c.String("asn-whitelist"); v != "" {
+			options = append(options, server.AsnWhitelist(v))
 		}
 
 		if v := c.String("ga-key"); v != "" {

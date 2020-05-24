@@ -75,6 +75,12 @@ func ClamavHost(s string) OptionFn {
 	}
 }
 
+func AsnWhitelist(s string) OptionFn {
+	return func(srvr *Server) {
+		srvr.AsnWhitelistString = s
+	}
+}
+
 func VirustotalKey(s string) OptionFn {
 	return func(srvr *Server) {
 		srvr.VirusTotalKey = s
@@ -296,6 +302,8 @@ type Server struct {
 	ListenerString        string
 	TLSListenerString     string
 	ProfileListenerString string
+
+	AsnWhitelistString	  string
 
 	Certificate string
 

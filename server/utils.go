@@ -30,6 +30,9 @@ import (
 	"net/mail"
 	"strconv"
 	"strings"
+	"io/ioutil"
+	"encoding/json"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -49,6 +52,33 @@ func getAwsSession(accessKey, secretKey, region, endpoint string, forcePathStyle
 func formatNumber(format string, s uint64) string {
 
 	return RenderFloat(format, float64(s))
+}
+
+func getASN(ip string) (uint64){
+	url := "https://api.iptoasn.com/v1/as/ip/" + ip
+	log.Printf("%s", url)
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Accept", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("%s", err.Error())
+		return 0
+	} 
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("%s", err.Error())
+		return 0
+	}
+	var items map[string]interface{}
+	err = json.Unmarshal(body, &items)
+	if err != nil {
+		log.Printf("%s", err.Error())
+		return 0
+	}
+	asn := uint64(items["as_number"].(float64))
+	return asn
 }
 
 var renderFloatPrecisionMultipliers = [10]float64{
