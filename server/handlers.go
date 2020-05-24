@@ -255,7 +255,8 @@ func (s *Server) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Expand this to allow anything from AS201971
-	if r.RemoteAddr != "185.57.191.150" {
+	if (!strings.Contains(r.RemoteAddr, "185.57.191.150")) {
+		log.Printf("Upload attempted from '%s'", r.RemoteAddr)
 		http.Error(w, "Uploads from NOC IPv4 only.", 403)
 		return
 	}
@@ -417,7 +418,8 @@ func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	
 	//Expand this to allow anything from AS201971
-	if r.RemoteAddr != "185.57.191.150" {
+	if (!strings.Contains(r.RemoteAddr, "185.57.191.150")) {
+		log.Printf("Upload attempted from '%s'", r.RemoteAddr)
 		http.Error(w, "Uploads from NOC IPv4 only.", 403)
 		return
 	}
