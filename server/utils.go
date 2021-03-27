@@ -55,7 +55,7 @@ func formatNumber(format string, s uint64) string {
 }
 
 func getASN(ip string) (uint64){
-	url := "https://api.iptoasn.com/v1/as/ip/" + ip
+	url := "http://127.0.0.1:42069/v1/as/ip/" + ip
 	log.Printf("%s", url)
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
