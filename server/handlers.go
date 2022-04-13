@@ -254,26 +254,12 @@ func (s *Server) postHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error occurred copying to output stream", 500)
 		return
 	}
-	//Expand this to allow anything from AS201971
-	remoteippart := strings.Split(r.RemoteAddr, ":") 
-	asn := getASN(remoteippart[0])
-	asns := strings.Split(s.AsnWhitelistString, ",");
-	asnTest := false
-	for _, element := range asns {
-		thisAsn, err := strconv.ParseUint(element,10, 64);
-		if err != nil {
-			log.Printf("%s", err.Error())
-		} else {
-			if thisAsn == asn {
-				asnTest = true;
-			}
-		}
-	}
-	if ((!strings.Contains(r.RemoteAddr, "185.57.191.150")) && asnTest != true) {
-		log.Printf("Upload attempted from '%s' (%s)", r.RemoteAddr, asn)
+
+	if s.ApplyAsnWhitelist(r) {
 		http.Error(w, "Unauthorized IP", 403)
 		return
 	}
+
 	token := Encode(10000000 + int64(rand.Intn(1000000000)))
 
 	w.Header().Set("Content-Type", "text/plain")
@@ -430,24 +416,8 @@ func (s *Server) putHandler(w http.ResponseWriter, r *http.Request) {
 	reader = r.Body
 
 	defer r.Body.Close()
-	
-	//Expand this to allow anything from AS201971
-	remoteippart := strings.Split(r.RemoteAddr, ":") 
-	asn := getASN(remoteippart[0])
-	asns := strings.Split(s.AsnWhitelistString, ",");
-	asnTest := false
-	for _, element := range asns {
-		thisAsn, err := strconv.ParseUint(element,10, 64);
-		if err != nil {
-			log.Printf("%s", err.Error())
-		} else {
-			if thisAsn == asn {
-				asnTest = true;
-			}
-		}
-	}
-	if ((!strings.Contains(r.RemoteAddr, "185.57.191.150")) && asnTest != true) {
-		log.Printf("Upload attempted from '%s' (%s)", r.RemoteAddr, asn)
+
+	if s.ApplyAsnWhitelist(r) {
 		http.Error(w, "Unauthorized IP", 403)
 		return
 	}
@@ -1112,4 +1082,46 @@ func (s *Server) BasicAuthHandler(h http.Handler) http.HandlerFunc {
 
 		h.ServeHTTP(w, r)
 	}
+}
+
+func (s *Server) ApplyAsnWhitelist(r *http.Request) bool {
+	remoteippart := strings.Split(r.RemoteAddr, ":")
+	asn := getASN(remoteippart[0])
+
+	unauthorizedRequest := false
+	// If we have ASN config, use that
+	if len(s.AsnWhitelistString) > 0 {
+		asns := strings.Split(s.AsnWhitelistString, ",")
+		validAsn := false
+		for _, element := range asns {
+			thisAsn, err := strconv.ParseUint(element, 10, 64)
+			if err != nil {
+				log.Printf("%s", err.Error())
+			} else {
+				if thisAsn == asn {
+					validAsn = true
+					break
+				}
+			}
+		}
+		unauthorizedRequest = !validAsn
+	}
+
+	// Allow Explicit IP whitelist to override ASN whitelist if enabled.
+	if unauthorizedRequest && len(s.AsnIpWhitelist) > 0 {
+		ips := strings.Split(s.AsnIpWhitelist, ",")
+		validIp := false
+		for _, element := range ips {
+			if element == remoteippart[0] {
+				validIp = true
+			}
+		}
+
+		unauthorizedRequest = !validIp
+	}
+	if unauthorizedRequest {
+		log.Printf("Upload attempted from '%s' (%s)", r.RemoteAddr, asn)
+		return true
+	}
+	return false
 }

@@ -81,6 +81,12 @@ func AsnWhitelist(s string) OptionFn {
 	}
 }
 
+func AsnIpWhitelist(s string) OptionFn {
+	return func(srvr *Server) {
+		srvr.AsnIpWhitelist = s
+	}
+}
+
 func VirustotalKey(s string) OptionFn {
 	return func(srvr *Server) {
 		srvr.VirusTotalKey = s
@@ -304,6 +310,7 @@ type Server struct {
 	ProfileListenerString string
 
 	AsnWhitelistString	  string
+	AsnIpWhitelist        string
 
 	Certificate string
 

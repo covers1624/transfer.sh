@@ -122,6 +122,12 @@ var globalFlags = []cli.Flag{
 		EnvVar: "ASN_WHITELIST",
 	},
 	cli.StringFlag{
+		Name: "asn-ip-whitelist",
+		Usage: "185.57.191.150,1.1.1.1",
+		Value: "",
+		EnvVar: "ASN_IP_WHITELIST",
+	},
+	cli.StringFlag{
 		Name:   "s3-endpoint",
 		Usage:  "",
 		Value:  "",
@@ -317,6 +323,10 @@ func New() *Cmd {
 
 		if v := c.String("asn-whitelist"); v != "" {
 			options = append(options, server.AsnWhitelist(v))
+		}
+
+		if v := c.String("asn-ip-whitelist"); v != "" {
+			options = append(options, server.AsnIpWhitelist(v))
 		}
 
 		if v := c.String("ga-key"); v != "" {
